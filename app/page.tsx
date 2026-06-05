@@ -8,12 +8,17 @@ export default function Home() {
   const { messages, sendMessage, status } = useChat();
   const [input, setInput] = useState("");
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLElement>(null);
 
   const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK_AI === "true";
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
+    const chatContainer = chatContainerRef.current;
+
+    if (!chatContainer) return;
+
+    chatContainer.scrollTo({
+      top: chatContainer.scrollHeight,
       behavior: "smooth",
     });
   }, [messages]);
@@ -51,7 +56,10 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="h-[500px] overflow-y-auto p-5 space-y-4">
+        <section
+          ref={chatContainerRef}
+          className="h-[500px] overflow-y-auto p-5 space-y-4"
+        >
           {messages.length === 0 && (
             <p className="text-zinc-500">
               Ask something to test the chat interface.
@@ -83,7 +91,11 @@ export default function Home() {
                 return null;
               })}
 
-              <p className="text-[10px] text-zinc-400 mt-2">
+              <p
+                className={`text-[10px] mt-2 ${
+                  message.role === "user" ? "text-blue-100" : "text-zinc-400"
+                }`}
+              >
                 {new Date().toLocaleTimeString()}
               </p>
             </div>
@@ -92,8 +104,6 @@ export default function Home() {
           {status === "streaming" && (
             <p className="text-zinc-500">AI is typing...</p>
           )}
-
-          <div ref={messagesEndRef} />
         </section>
 
         <form
