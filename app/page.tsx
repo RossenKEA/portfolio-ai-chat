@@ -1,11 +1,22 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const { messages, sendMessage, status } = useChat();
   const [input, setInput] = useState("");
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK_AI === "true";
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -17,30 +28,30 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
+    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-2xl border border-zinc-800 rounded-2xl bg-zinc-900 shadow-xl overflow-hidden">
         <header className="p-5 border-b border-zinc-800">
           <h1 className="text-xl font-semibold">Portfolio AI Chat</h1>
-          <p className="text-sm text-zinc-400">
-            Real Gemini API when available. Transparent mock fallback for demo reliability.
+
+          <p className="text-sm text-zinc-400 mt-1">
+            Real Gemini API when available. Transparent mock fallback for demo
+            reliability.
           </p>
+
+          <div className="flex items-center gap-2 mt-3">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isMockMode ? "bg-yellow-500" : "bg-green-500"
+              }`}
+            />
+
+            <span className="text-xs text-zinc-400">
+              {isMockMode ? "Demo Mode" : "Gemini AI"}
+            </span>
+          </div>
         </header>
 
         <section className="h-[500px] overflow-y-auto p-5 space-y-4">
-          <div className="flex items-center gap-2 mt-2">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                process.env.NEXT_PUBLIC_USE_MOCK_AI === "true"
-                  ? "bg-yellow-500"
-                  : "bg-green-500"
-              }`}
-            />
-            <span className="text-xs text-zinc-400">
-              {process.env.NEXT_PUBLIC_USE_MOCK_AI === "true"
-                ? "Demo Mode"
-                : "Gemini AI"}
-            </span>
-          </div>
           {messages.length === 0 && (
             <p className="text-zinc-500">
               Ask something to test the chat interface.
@@ -62,13 +73,17 @@ export default function Home() {
 
               {message.parts.map((part, i) => {
                 if (part.type === "text") {
-                  return <p key={i}>{part.text}</p>;
+                  return (
+                    <div key={i} className="prose prose-invert prose-sm max-w-none">
+                      <ReactMarkdown>{part.text}</ReactMarkdown>
+                    </div>
+                  );
                 }
 
                 return null;
               })}
 
-              <p className="text-[10px] text-zinc-500 mt-2">
+              <p className="text-[10px] text-zinc-400 mt-2">
                 {new Date().toLocaleTimeString()}
               </p>
             </div>
@@ -77,9 +92,14 @@ export default function Home() {
           {status === "streaming" && (
             <p className="text-zinc-500">AI is typing...</p>
           )}
+
+          <div ref={messagesEndRef} />
         </section>
 
-        <form onSubmit={handleSubmit} className="p-4 border-t border-zinc-800 flex gap-2">
+        <form
+          onSubmit={handleSubmit}
+          className="p-4 border-t border-zinc-800 flex gap-2"
+        >
           <input
             className="flex-1 rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-2 outline-none focus:border-blue-500"
             value={input}
@@ -95,6 +115,20 @@ export default function Home() {
           </button>
         </form>
       </div>
+
+      <section className="w-full max-w-2xl mt-6 border border-zinc-800 rounded-2xl bg-zinc-900 p-5 text-sm text-zinc-400">
+        <h2 className="font-semibold text-white mb-2">Technical Overview</h2>
+
+        <ul className="list-disc ml-6 space-y-1">
+          <li>Built with Next.js App Router</li>
+          <li>Written in TypeScript</li>
+          <li>Uses a server-side API route to protect the API key</li>
+          <li>Integrates with Google Gemini</li>
+          <li>Supports streaming AI responses</li>
+          <li>Includes transparent demo/mock mode</li>
+          <li>Uses environment variables for configuration</li>
+        </ul>
+      </section>
     </main>
   );
 }
