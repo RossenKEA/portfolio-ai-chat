@@ -3,7 +3,7 @@ import {
     createUIMessageStream,
     createUIMessageStreamResponse,
     generateId,
-    streamText,
+    generateText,
 } from "ai";
 
 export const maxDuration = 30;
@@ -85,14 +85,14 @@ export async function POST(req: Request) {
     }
 
     try {
-        const result = streamText({
+        const result = await generateText({
             model: google("gemini-2.5-flash"),
             system:
                 "You are a helpful AI assistant inside a portfolio demo. Keep responses clear and concise.",
             messages: convertToModelMessages(messages),
         });
 
-        return result.toUIMessageStreamResponse();
+        return createMockResponse(result.text);
     } catch (error) {
         console.error("Gemini failed, switching to demo mode:", error);
 
