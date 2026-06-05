@@ -5,7 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function Home() {
-  const { messages, sendMessage, status, setMessages } = useChat();
+  const { messages, sendMessage, status, setMessages } = useChat({
+    messages:
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("chat-history") || "[]")
+        : [],
+  });
   const [input, setInput] = useState("");
 
   const chatContainerRef = useRef<HTMLElement>(null);
@@ -23,6 +28,10 @@ export default function Home() {
       top: chatContainer.scrollHeight,
       behavior: "smooth",
     });
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem("chat-history", JSON.stringify(messages));
   }, [messages]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,12 +68,15 @@ export default function Home() {
               {isMockMode ? "Demo Mode" : "Gemini AI"}
             </span>
           </div>
-          <button
-            onClick={() => setMessages([])}
-            className="mt-3 text-xs text-zinc-400 hover:text-white underline"
-          >
-            Clear chat
-          </button>
+            <button
+              onClick={() => {
+                setMessages([]);
+                localStorage.removeItem("chat-history");
+              }}
+              className="mt-3 text-xs text-zinc-400 hover:text-white underline"
+            >
+              Clear chat
+            </button>
         </header>
 
         <section
