@@ -132,13 +132,21 @@ export default function Home() {
                 return null;
               })}
 
-              <p
-                className={`text-[10px] mt-2 ${
-                  message.role === "user" ? "text-blue-100" : "text-zinc-400"
-                }`}
-              >
-                Sent
-              </p>
+              {message.role === "assistant" && (
+                <button
+                  onClick={() => {
+                    const text = message.parts
+                      .filter((part) => part.type === "text")
+                      .map((part) => part.text)
+                      .join(" ");
+
+                    navigator.clipboard.writeText(text);
+                  }}
+                  className="text-[10px] text-zinc-400 hover:text-white mt-2 underline"
+                >
+                  Copy response
+                </button>
+              )}
             </div>
           ))}
 
