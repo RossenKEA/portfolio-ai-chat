@@ -5,13 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function Home() {
-  const { messages, sendMessage, status, setMessages } = useChat({
-    messages:
-      typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("chat-history") || "[]")
-        : [],
-  });
+  const { messages, sendMessage, status, setMessages } = useChat();
   const [input, setInput] = useState("");
+  const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   const chatContainerRef = useRef<HTMLElement>(null);
 
@@ -31,8 +28,26 @@ export default function Home() {
   }, [messages]);
 
   useEffect(() => {
+    if (!hasLoadedHistory) return;
+
     localStorage.setItem("chat-history", JSON.stringify(messages));
-  }, [messages]);
+  }, [messages, hasLoadedHistory]);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+
+    const savedMessages = localStorage.getItem("chat-history");
+
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    }
+
+    setHasLoadedHistory(true);
+  }, [hasMounted, setMessages]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +58,9 @@ export default function Home() {
     setInput("");
   }
 
+  if (!hasMounted) {
+    return null;
+  }
   return (
     <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-2xl border border-zinc-800 rounded-2xl bg-zinc-900 shadow-xl overflow-hidden">
@@ -119,7 +137,7 @@ export default function Home() {
                   message.role === "user" ? "text-blue-100" : "text-zinc-400"
                 }`}
               >
-                {new Date().toLocaleTimeString()}
+                Sent
               </p>
             </div>
           ))}
