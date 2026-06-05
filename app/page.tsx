@@ -1,65 +1,82 @@
-import Image from "next/image";
+"use client";
+
+import { useChat } from "@ai-sdk/react";
+import { useState } from "react";
 
 export default function Home() {
+  const { messages, sendMessage, status } = useChat();
+  const [input, setInput] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!input.trim()) return;
+
+    sendMessage({ text: input });
+    setInput("");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl border border-zinc-800 rounded-2xl bg-zinc-900 shadow-xl overflow-hidden">
+        <header className="p-5 border-b border-zinc-800">
+          <h1 className="text-xl font-semibold">Portfolio AI Chat</h1>
+          <p className="text-sm text-zinc-400">
+            Real Gemini API when available. Transparent mock fallback for demo reliability.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        </header>
+
+        <section className="h-[500px] overflow-y-auto p-5 space-y-4">
+          {messages.length === 0 && (
+            <p className="text-zinc-500">
+              Ask something to test the chat interface.
+            </p>
+          )}
+
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={
+                message.role === "user"
+                  ? "ml-auto max-w-[80%] bg-blue-600 rounded-xl p-3"
+                  : "mr-auto max-w-[80%] bg-zinc-800 rounded-xl p-3"
+              }
+            >
+              <p className="text-xs mb-1 text-zinc-300">
+                {message.role === "user" ? "You" : "AI"}
+              </p>
+
+              {message.parts.map((part, i) => {
+                if (part.type === "text") {
+                  return <p key={i}>{part.text}</p>;
+                }
+
+                return null;
+              })}
+            </div>
+          ))}
+
+          {status === "streaming" && (
+            <p className="text-zinc-500">AI is typing...</p>
+          )}
+        </section>
+
+        <form onSubmit={handleSubmit} className="p-4 border-t border-zinc-800 flex gap-2">
+          <input
+            className="flex-1 rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-2 outline-none focus:border-blue-500"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+          />
+
+          <button
+            className="rounded-lg bg-blue-600 px-4 py-2 font-medium disabled:opacity-50"
+            disabled={status === "streaming"}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            Send
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }
