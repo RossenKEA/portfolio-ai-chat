@@ -150,8 +150,8 @@ export default function Home() {
             </div>
           ))}
 
-          {status === "streaming" && (
-            <p className="text-zinc-500">AI is typing...</p>
+          {(status === "submitted" || status === "streaming") && (
+            <p className="text-zinc-500 animate-pulse">AI is thinking...</p>
           )}
         </section>
 
