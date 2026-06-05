@@ -52,7 +52,7 @@ export default function Home() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!input.trim()) return;
+    if (!input.trim() || status === "submitted" || status === "streaming") return;
 
     sendMessage({ text: input });
     setInput("");
@@ -164,11 +164,12 @@ export default function Home() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
+            disabled={status === "submitted" || status === "streaming"}
           />
 
           <button
             className="rounded-lg bg-blue-600 px-4 py-2 font-medium disabled:opacity-50"
-            disabled={status === "streaming"}
+            disabled={status === "submitted" || status === "streaming"}
           >
             Send
           </button>
