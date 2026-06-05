@@ -22,9 +22,14 @@ function convertToModelMessages(messages: any[]) {
 export async function POST(req: Request) {
     const { messages } = await req.json();
 
+    const userMessageCount = messages.filter(
+        (m: any) => m.role === "user"
+    ).length;
+
     const useMock =
         process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" ||
-        !process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+        !process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+        userMessageCount > 3;
 
     if (useMock) {
         const lastUserMessage = [...messages]

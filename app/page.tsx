@@ -10,7 +10,9 @@ export default function Home() {
 
   const chatContainerRef = useRef<HTMLElement>(null);
 
-  const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK_AI === "true";
+  const isMockMode =
+    process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" ||
+    messages.filter((m) => m.role === "user").length > 3;
 
   useEffect(() => {
     const chatContainer = chatContainerRef.current;
@@ -41,6 +43,9 @@ export default function Home() {
           <p className="text-sm text-zinc-400 mt-1">
             Real Gemini API when available. Transparent mock fallback for demo
             reliability.
+          </p>
+          <p className="text-xs text-yellow-400 mt-2">
+            Demo mode activates after 3 messages to preserve API quota.
           </p>
 
           <div className="flex items-center gap-2 mt-3">
