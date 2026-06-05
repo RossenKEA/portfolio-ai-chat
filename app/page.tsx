@@ -65,7 +65,7 @@ export default function Home() {
     <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-2xl border border-zinc-800 rounded-2xl bg-zinc-900 shadow-xl overflow-hidden">
         <header className="p-5 border-b border-zinc-800">
-          <h1 className="text-xl font-semibold">Portfolio AI Chat</h1>
+          <h1 className="text-xl font-semibold">AI Chat by Rasmus Rossen</h1>
 
           <p className="text-sm text-zinc-400 mt-1">
             Real Gemini API when available. Transparent mock fallback for demo
