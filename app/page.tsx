@@ -27,6 +27,20 @@ export default function Home() {
         </header>
 
         <section className="h-[500px] overflow-y-auto p-5 space-y-4">
+          <div className="flex items-center gap-2 mt-2">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                process.env.NEXT_PUBLIC_USE_MOCK_AI === "true"
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+              }`}
+            />
+            <span className="text-xs text-zinc-400">
+              {process.env.NEXT_PUBLIC_USE_MOCK_AI === "true"
+                ? "Demo Mode"
+                : "Gemini AI"}
+            </span>
+          </div>
           {messages.length === 0 && (
             <p className="text-zinc-500">
               Ask something to test the chat interface.
