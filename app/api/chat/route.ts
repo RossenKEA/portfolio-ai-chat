@@ -1,11 +1,16 @@
 import { google } from "@ai-sdk/google";
-import { streamText } from "ai";
+import {
+    createUIMessageStream,
+    createUIMessageStreamResponse,
+    generateId,
+    streamText,
+} from "ai";
 
 export const maxDuration = 30;
 
 function getTextFromMessage(message: any) {
     return (
-        message.parts
+        message?.parts
             ?.filter((part: any) => part.type === "text")
             .map((part: any) => part.text)
             .join(" ") || ""
@@ -19,39 +24,80 @@ function convertToModelMessages(messages: any[]) {
     }));
 }
 
+function createMockResponse(text: string) {
+    const stream = createUIMessageStream({
+        execute({ writer }) {
+            const messageId = generateId();
+            const textId = generateId();
+
+            writer.write({
+                type: "start",
+                messageId,
+            });
+
+            writer.write({
+                type: "text-start",
+                id: textId,
+            });
+
+            writer.write({
+                type: "text-delta",
+                id: textId,
+                delta: text,
+            });
+
+            writer.write({
+                type: "text-end",
+                id: textId,
+            });
+
+            writer.write({
+                type: "finish",
+            });
+        },
+    });
+
+    return createUIMessageStreamResponse({ stream });
+}
+
 export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const userMessageCount = messages.filter(
-        (m: any) => m.role === "user"
+        (message: any) => message.role === "user"
     ).length;
 
-    const useMock =
+    const lastUserMessage = [...messages]
+        .reverse()
+        .find((message) => message.role === "user");
+
+    const userText = getTextFromMessage(lastUserMessage);
+
+    const shouldUseMock =
         process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" ||
         !process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
         userMessageCount > 3;
 
-    if (useMock) {
-        const lastUserMessage = [...messages]
-            .reverse()
-            .find((message) => message.role === "user");
+    if (shouldUseMock) {
+        return createMockResponse(
+            `Demo response: You said "${userText}". This is a transparent simulated response used to protect API quota.`
+        );
+    }
 
-        const userText = getTextFromMessage(lastUserMessage);
-
+    try {
         const result = streamText({
             model: google("gemini-2.5-flash"),
-            prompt: `Return this exact message only: Mock response: You said "${userText}". This is a transparent demo response, not a real AI answer.`,
+            system:
+                "You are a helpful AI assistant inside a portfolio demo. Keep responses clear and concise.",
+            messages: convertToModelMessages(messages),
         });
 
         return result.toUIMessageStreamResponse();
+    } catch (error) {
+        console.error("Gemini failed, switching to demo mode:", error);
+
+        return createMockResponse(
+            `Demo response: Gemini is currently unavailable or quota-limited. You said "${userText}".`
+        );
     }
-
-    const result = streamText({
-        model: google("gemini-2.5-flash"),
-        system:
-            "You are a helpful AI assistant inside a portfolio demo. Keep responses clear and concise.",
-        messages: convertToModelMessages(messages),
-    });
-
-    return result.toUIMessageStreamResponse();
 }
