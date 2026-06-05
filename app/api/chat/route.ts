@@ -3,15 +3,20 @@ import { streamText } from "ai";
 
 export const maxDuration = 30;
 
-function getLastUserMessage(messages: any[]) {
-    const lastMessage = [...messages].reverse().find((m) => m.role === "user");
-
+function getTextFromMessage(message: any) {
     return (
-        lastMessage?.parts
+        message.parts
             ?.filter((part: any) => part.type === "text")
             .map((part: any) => part.text)
-            .join(" ") || "your message"
+            .join(" ") || ""
     );
+}
+
+function convertToModelMessages(messages: any[]) {
+    return messages.map((message) => ({
+        role: message.role,
+        content: getTextFromMessage(message),
+    }));
 }
 
 export async function POST(req: Request) {
@@ -22,7 +27,11 @@ export async function POST(req: Request) {
         !process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
     if (useMock) {
-        const userMessage = getLastUserMessage(messages);
+        const lastUserMessage = [...messages]
+            .reverse()
+            .find((message) => message.role === "user");
+
+        const userText = getTextFromMessage(lastUserMessage);
 
         return Response.json({
             id: crypto.randomUUID(),
@@ -30,7 +39,7 @@ export async function POST(req: Request) {
             parts: [
                 {
                     type: "text",
-                    text: `Mock response: You said "${userMessage}". This is a transparent demo response, not a real AI answer.`,
+                    text: `Mock response: You said "${userText}". This is a transparent demo response, not a real AI answer.`,
                 },
             ],
         });
@@ -40,7 +49,7 @@ export async function POST(req: Request) {
         model: google("gemini-2.5-flash"),
         system:
             "You are a helpful AI assistant inside a portfolio demo. Keep responses clear and concise.",
-        messages,
+        messages: convertToModelMessages(messages),
     });
 
     return result.toUIMessageStreamResponse();
