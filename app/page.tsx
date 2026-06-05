@@ -184,7 +184,7 @@ export default function Home() {
           <li>Written in TypeScript</li>
           <li>Uses a server-side API route to protect the API key</li>
           <li>Integrates with Google Gemini</li>
-          <li>Supports streaming AI responses</li>
+          <li>Handles AI responses through a server-side API route</li>
           <li>Includes transparent demo/mock mode</li>
           <li>Uses environment variables for configuration</li>
         </ul>
