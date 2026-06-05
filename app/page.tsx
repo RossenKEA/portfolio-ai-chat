@@ -67,6 +67,10 @@ export default function Home() {
 
                 return null;
               })}
+
+              <p className="text-[10px] text-zinc-500 mt-2">
+                {new Date().toLocaleTimeString()}
+              </p>
             </div>
           ))}
 
