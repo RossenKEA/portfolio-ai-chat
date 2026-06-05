@@ -33,16 +33,12 @@ export async function POST(req: Request) {
 
         const userText = getTextFromMessage(lastUserMessage);
 
-        return Response.json({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            parts: [
-                {
-                    type: "text",
-                    text: `Mock response: You said "${userText}". This is a transparent demo response, not a real AI answer.`,
-                },
-            ],
+        const result = streamText({
+            model: google("gemini-2.5-flash"),
+            prompt: `Return this exact message only: Mock response: You said "${userText}". This is a transparent demo response, not a real AI answer.`,
         });
+
+        return result.toUIMessageStreamResponse();
     }
 
     const result = streamText({
